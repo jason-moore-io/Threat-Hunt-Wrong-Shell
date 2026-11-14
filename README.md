@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="images/cover.png" alt="Threat Hunt 28 – Wrong Shell" width="800">
-</p>
-
 # Threat Hunt 28: Wrong Shell
 
 | | |
@@ -13,7 +9,7 @@
 | **User** | sarah.cole |
 | **Hunt window** | 15 Oct 2026, 10:00–17:00 UTC |
 | **Data sources** | SysmonProcess_CL, SysmonNetwork_CL, SysmonDNS_CL, SysmonFileCreate_CL, SysmonRegistryEvent_CL, SecurityEvent_CL |
-| **Flags** | 30 / 30 |
+| **Questions** | 30 / 30 (7 sections) |
 
 ## Table of Contents
 
@@ -22,19 +18,19 @@
 - [Attack Timeline](#attack-timeline-utc-15-oct-2026)
 - [MITRE ATT&CK Summary](#mitre-attck-summary)
 - [Indicators of Compromise](#indicators-of-compromise)
-- [Flag Walkthrough](#flag-walkthrough)
-  - [Section 1: The Outbound Anomaly](#section-1-the-outbound-anomaly) (Flags 1–4)
-  - [Section 2: A Name That Doesn't Belong](#section-2-a-name-that-doesnt-belong) (Flags 5–8)
-  - [Section 3: The Uninvited Session](#section-3-the-uninvited-session) (Flags 9–12)
-  - [Section 4: Hands on Keyboard](#section-4-hands-on-keyboard) (Flags 13–16)
-  - [Section 5: What They Came For](#section-5-what-they-came-for) (Flags 17–21)
-  - [Section 6: The Second Skin](#section-6-the-second-skin) (Flags 22–26)
-  - [Section 7: What the Network Missed](#section-7-what-the-network-missed) (Flags 27–30)
+- [Investigation Walkthrough](#investigation-walkthrough)
+  - [Section 1: The Outbound Anomaly](#section-1-the-outbound-anomaly) (Q1–Q4)
+  - [Section 2: A Name That Doesn't Belong](#section-2-a-name-that-doesnt-belong) (Q1–Q4)
+  - [Section 3: The Uninvited Session](#section-3-the-uninvited-session) (Q1–Q4)
+  - [Section 4: Hands on Keyboard](#section-4-hands-on-keyboard) (Q1–Q4)
+  - [Section 5: What They Came For](#section-5-what-they-came-for) (Q1–Q5)
+  - [Section 6: The Second Skin](#section-6-the-second-skin) (Q1–Q5)
+  - [Section 7: What the Network Missed](#section-7-what-the-network-missed) (Q1–Q4)
 - [Detection Gaps](#detection-gaps)
 - [Final Assessment](#final-assessment)
 - [Analyst Notes](#analyst-notes)
 
-> All KQL used in this hunt is also saved as standalone files in [`queries/`](queries/). Click a flag to expand it.
+> All KQL used in this hunt is also saved as standalone files in [`queries/`](queries/). Click a question to expand it.
 
 ---
 
@@ -151,12 +147,12 @@ No lateral movement was seen. **The threat was not contained** at the end of the
 
 ---
 
-## Flag Walkthrough
+## Investigation Walkthrough
 
 ## Section 1: The Outbound Anomaly
 
 <details>
-<summary><strong>Flag 1: The suspicious process</strong> → <code>svchost1.exe</code></summary>
+<summary><strong>S1 Q1: The suspicious process</strong> → <code>svchost1.exe</code></summary>
 
 **Objective:** Identify the process responsible for the repeated outbound connections.
 
@@ -182,13 +178,13 @@ SysmonNetwork_CL
 | order by Connections desc
 ```
 
-<p align="center"><img src="images/flag-01.png" alt="Flag 1 screenshot" width="800"></p>
+<p align="center"><img src="images/s1-q1.png" alt="S1 Q1 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on any process named like a system binary (`svchost*`, `lsass*`, `csrss*`, `explorer*`) running outside `C:\Windows\`.
 </details>
 
 <details>
-<summary><strong>Flag 2: C2 domain</strong> → <code>egravy.com</code></summary>
+<summary><strong>S1 Q2: C2 domain</strong> → <code>egravy.com</code></summary>
 
 **Objective:** Identify the domain the beacon resolves.
 
@@ -207,13 +203,13 @@ SysmonDNS_CL
             Results = make_set(QueryResults) by Image, QueryName
 ```
 
-<p align="center"><img src="images/flag-02.png" alt="Flag 2 screenshot" width="800"></p>
+<p align="center"><img src="images/s1-q2.png" alt="S1 Q2 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on DNS queries from executables in user-writable paths to newly registered or low-reputation domains.
 </details>
 
 <details>
-<summary><strong>Flag 3: C2 addresses</strong> → <code>5.182.33.151, 185.196.9.213</code></summary>
+<summary><strong>S1 Q3: C2 addresses</strong> → <code>5.182.33.151, 185.196.9.213</code></summary>
 
 **Objective:** Name both IPs the C2 domain resolves to.
 
@@ -230,13 +226,13 @@ SysmonNetwork_CL
 | summarize Connections = count(), First = min(OriginalTime), Last = max(OriginalTime) by DestinationIp
 ```
 
-<p align="center"><img src="images/flag-03.png" alt="Flag 3 screenshot" width="800"></p>
+<p align="center"><img src="images/s1-q3.png" alt="S1 Q3 screenshot" width="800"></p>
 
 **Detection Recommendation:** Add both IPs and the domain to threat intel and to firewall and proxy blocklists, and watch for other hosts contacting them.
 </details>
 
 <details>
-<summary><strong>Flag 4: Transport channel</strong> → <code>80</code></summary>
+<summary><strong>S1 Q4: Transport channel</strong> → <code>80</code></summary>
 
 **Objective:** Identify the C2 destination port.
 
@@ -253,7 +249,7 @@ SysmonNetwork_CL
 | summarize count() by DestinationPort, Protocol
 ```
 
-<p align="center"><img src="images/flag-04.png" alt="Flag 4 screenshot" width="800"></p>
+<p align="center"><img src="images/s1-q4.png" alt="S1 Q4 screenshot" width="800"></p>
 
 **Detection Recommendation:** Force outbound HTTP through an authenticated proxy, and alert on direct port-80 connections from non-browser processes.
 </details>
@@ -261,7 +257,7 @@ SysmonNetwork_CL
 ## Section 2: A Name That Doesn't Belong
 
 <details>
-<summary><strong>Flag 5: Delivery application</strong> → <code>msedge.exe</code></summary>
+<summary><strong>S2 Q1: Delivery application</strong> → <code>msedge.exe</code></summary>
 
 **Objective:** Identify what launched the beacon.
 
@@ -278,13 +274,13 @@ SysmonProcess_CL
 | project OriginalTime, User, ParentImage, ParentProcessId, Image, ProcessId, CommandLine, IntegrityLevel
 ```
 
-<p align="center"><img src="images/flag-05.png" alt="Flag 5 screenshot" width="800"></p>
+<p align="center"><img src="images/s2-q1.png" alt="S2 Q1 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on browsers launching unsigned executables from `Downloads`, and enforce SmartScreen and Mark-of-the-Web blocking.
 </details>
 
 <details>
-<summary><strong>Flag 6: Execution timestamp</strong> → <code>2026-10-15 10:07:52 UTC</code></summary>
+<summary><strong>S2 Q2: Execution timestamp</strong> → <code>2026-10-15 10:07:52 UTC</code></summary>
 
 **Objective:** Find the exact creation time of the beacon process.
 
@@ -292,13 +288,13 @@ SysmonProcess_CL
 
 **Why it matters:** This is the start of compromise on NL-WS01: 3m23s after the attacker's RDP logon and 1.7 s before the first C2 DNS lookup.
 
-<p align="center"><img src="images/flag-06.png" alt="Flag 6 screenshot" width="800"></p>
+<p align="center"><img src="images/s2-q2.png" alt="S2 Q2 screenshot" width="800"></p>
 
 **Detection Recommendation:** Correlate new Type 10 logons from public IPs with process creation in user-writable paths within a short window.
 </details>
 
 <details>
-<summary><strong>Flag 7: Session context</strong> → <code>2</code></summary>
+<summary><strong>S2 Q3: Session context</strong> → <code>2</code></summary>
 
 **Objective:** Identify the Windows session hosting the beacon.
 
@@ -316,13 +312,13 @@ SysmonProcess_CL
 | project pack_all()
 ```
 
-<p align="center"><img src="images/flag-07.png" alt="Flag 7 screenshot" width="800"></p>
+<p align="center"><img src="images/s2-q3.png" alt="S2 Q3 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on `svchost.exe`-named processes with `TerminalSessionId != 0`.
 </details>
 
 <details>
-<summary><strong>Flag 8: Process legitimacy</strong> → <code>no</code></summary>
+<summary><strong>S2 Q4: Process legitimacy</strong> → <code>no</code></summary>
 
 **Objective:** Decide whether the process is a legitimate Windows service.
 
@@ -339,7 +335,7 @@ SysmonProcess_CL
 
 **Why it matters:** Several deviations together form a clear masquerading pattern (T1036.005).
 
-<p align="center"><img src="images/flag-08.png" alt="Flag 8 screenshot" width="800"></p>
+<p align="center"><img src="images/s2-q4.png" alt="S2 Q4 screenshot" width="800"></p>
 
 **Detection Recommendation:** Build a parent/path/session baseline rule for critical Windows process names.
 </details>
@@ -347,7 +343,7 @@ SysmonProcess_CL
 ## Section 3: The Uninvited Session
 
 <details>
-<summary><strong>Flag 9: Attacker source</strong> → <code>187.15.135.77</code></summary>
+<summary><strong>S3 Q1: Attacker source</strong> → <code>187.15.135.77</code></summary>
 
 **Objective:** Identify the attacker's source IP.
 
@@ -365,7 +361,7 @@ SecurityEvent_CL
 | order by OriginalTime asc
 ```
 
-<p align="center"><img src="images/flag-09.png" alt="Flag 9 screenshot" width="800"></p>
+<p align="center"><img src="images/s3-q1.png" alt="S3 Q1 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on any 4624 Type 10 from a public IP address.
 
@@ -373,7 +369,7 @@ SecurityEvent_CL
 </details>
 
 <details>
-<summary><strong>Flag 10: Attacker platform</strong> → <code>kali</code></summary>
+<summary><strong>S3 Q2: Attacker platform</strong> → <code>kali</code></summary>
 
 **Objective:** Identify the connecting workstation's name.
 
@@ -381,13 +377,13 @@ SecurityEvent_CL
 
 **Why it matters:** `kali` is the default Kali Linux hostname, an offensive-security distribution. Leaving the default in place suggests a throwaway or quickly built attack box.
 
-<p align="center"><img src="images/flag-10.png" alt="Flag 10 screenshot" width="800"></p>
+<p align="center"><img src="images/s3-q2.png" alt="S3 Q2 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on 4624 or 4625 events with `WorkstationName` in a list of known attack-distro defaults (`kali`, `parrot`, `WIN-*` from public IPs).
 </details>
 
 <details>
-<summary><strong>Flag 11: Legitimate workstation</strong> → <code>DESKTOP-AMOL2RQ</code></summary>
+<summary><strong>S3 Q3: Legitimate workstation</strong> → <code>DESKTOP-AMOL2RQ</code></summary>
 
 **Objective:** Separate the legitimate user's external logons from the attacker's.
 
@@ -395,13 +391,13 @@ SecurityEvent_CL
 
 **Why it matters:** Same client, changing ISP addresses and a normal unlock pattern: this is sarah.cole herself. It also shows RDP exposure was a standing remote-work practice.
 
-<p align="center"><img src="images/flag-11.png" alt="Flag 11 screenshot" width="800"></p>
+<p align="center"><img src="images/s3-q3.png" alt="S3 Q3 screenshot" width="800"></p>
 
 **Detection Recommendation:** Baseline each user's known client workstation names, and alert on new ones combined with a new public IP.
 </details>
 
 <details>
-<summary><strong>Flag 12: Brute force assessment</strong> → <code>no</code></summary>
+<summary><strong>S3 Q4: Brute force assessment</strong> → <code>no</code></summary>
 
 **Objective:** Determine whether the password was guessed.
 
@@ -416,7 +412,7 @@ SecurityEvent_CL
 | summarize count() by Account, IpAddress
 ```
 
-<p align="center"><img src="images/flag-12.png" alt="Flag 12 screenshot" width="800"></p>
+<p align="center"><img src="images/s3-q4.png" alt="S3 Q4 screenshot" width="800"></p>
 
 **Detection Recommendation:** Enforce MFA on remote access, and check user credentials against known breach data.
 </details>
@@ -424,7 +420,7 @@ SecurityEvent_CL
 ## Section 4: Hands on Keyboard
 
 <details>
-<summary><strong>Flag 13: Operator tell</strong> → <code>ls</code></summary>
+<summary><strong>S4 Q1: Operator tell</strong> → <code>ls</code></summary>
 
 **Objective:** Find the failed directory-listing command.
 
@@ -441,13 +437,13 @@ SysmonProcess_CL
 | order by OriginalTime asc
 ```
 
-<p align="center"><img src="images/flag-13.png" alt="Flag 13 screenshot" width="800"></p>
+<p align="center"><img src="images/s4-q1.png" alt="S4 Q1 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on `cmd.exe /c` command lines containing Linux-only commands (`ls`, `cat`, `pwd`, `uname`, `ifconfig`).
 </details>
 
 <details>
-<summary><strong>Flag 14: Alternative escalation tool</strong> → <code>secedit.exe</code></summary>
+<summary><strong>S4 Q2: Alternative escalation tool</strong> → <code>secedit.exe</code></summary>
 
 **Objective:** Identify the alternative policy-modification utility.
 
@@ -455,13 +451,13 @@ SysmonProcess_CL
 
 **Why it matters:** After the group-add attempts failed, the operator tried to grant user rights through a custom security template.
 
-<p align="center"><img src="images/flag-14.png" alt="Flag 14 screenshot" width="800"></p>
+<p align="center"><img src="images/s4-q2.png" alt="S4 Q2 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on `secedit.exe /configure` run by non-admin users or from templates in `Temp`.
 </details>
 
 <details>
-<summary><strong>Flag 15: Escalation proof</strong> → <code>no</code></summary>
+<summary><strong>S4 Q3: Escalation proof</strong> → <code>no</code></summary>
 
 **Objective:** Determine whether any escalation succeeded.
 
@@ -483,21 +479,21 @@ SecurityEvent_CL
 | project OriginalTime, EventID, Account, Activity
 ```
 
-<p align="center"><img src="images/flag-15.png" alt="Flag 15 screenshot" width="800"></p>
+<p align="center"><img src="images/s4-q3.png" alt="S4 Q3 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on `net localgroup ... /add` and `secedit /configure` regardless of whether they succeed, because the attempt itself is the signal.
 </details>
 
 <details>
-<summary><strong>Flag 16: Operator method</strong> → <code>human</code></summary>
+<summary><strong>S4 Q4: Operator method</strong> → <code>human</code></summary>
 
 **Objective:** Decide between live operator and automated script.
 
 **Finding:** It was a hands-on-keyboard human operator, based on wrong-OS commands, a typo then a fix, repeated `dir` path attempts, a change of tactic after failure, irregular timing (gaps of seconds and hours), and confusion over the `sishelper.exe` path.
 
-**Why it matters:** Interactive Havoc C2 operation by someone at home on Linux but weaker on Windows. Persistence was nonetheless carefully themed (Flag 26).
+**Why it matters:** Interactive Havoc C2 operation by someone at home on Linux but weaker on Windows. Persistence was nonetheless carefully themed (S6 Q5).
 
-<p align="center"><img src="images/flag-16.png" alt="Flag 16 screenshot" width="800"></p>
+<p align="center"><img src="images/s4-q4.png" alt="S4 Q4 screenshot" width="800"></p>
 
 **Detection Recommendation:** Treat interactive `cmd.exe` children of unknown binaries as active intrusions that need immediate response.
 </details>
@@ -505,7 +501,7 @@ SecurityEvent_CL
 ## Section 5: What They Came For
 
 <details>
-<summary><strong>Flag 17: Credential file</strong> → <code>passwords.txt</code></summary>
+<summary><strong>S5 Q1: Credential file</strong> → <code>passwords.txt</code></summary>
 
 **Objective:** Identify the credential file accessed.
 
@@ -513,13 +509,13 @@ SecurityEvent_CL
 
 **Why it matters:** Plaintext credential storage (T1552.001). All credentials in the file must be treated as compromised.
 
-<p align="center"><img src="images/flag-17.png" alt="Flag 17 screenshot" width="800"></p>
+<p align="center"><img src="images/s5-q1.png" alt="S5 Q1 screenshot" width="800"></p>
 
 **Detection Recommendation:** Run a DLP or file-name watch for `password*`, `creds*` and `*vpn*` files, and require a password manager.
 </details>
 
 <details>
-<summary><strong>Flag 18: Legitimate access</strong> → <code>10:01:54</code></summary>
+<summary><strong>S5 Q2: Legitimate access</strong> → <code>10:01:54</code></summary>
 
 **Objective:** Find when the legitimate user first opened the file.
 
@@ -535,13 +531,13 @@ SysmonProcess_CL
 | order by OriginalTime asc
 ```
 
-<p align="center"><img src="images/flag-18.png" alt="Flag 18 screenshot" width="800"></p>
+<p align="center"><img src="images/s5-q2.png" alt="S5 Q2 screenshot" width="800"></p>
 
 **Detection Recommendation:** Compare file access by the expected parent (`explorer.exe`) with access through `cmd.exe` spawned by unknown binaries.
 </details>
 
 <details>
-<summary><strong>Flag 19: Exfiltration command</strong> → <code>download</code></summary>
+<summary><strong>S5 Q3: Exfiltration command</strong> → <code>download</code></summary>
 
 **Objective:** Identify the C2 file-transfer command.
 
@@ -549,13 +545,13 @@ SysmonProcess_CL
 
 **Why it matters:** Exfiltration over the existing HTTP C2 channel (T1041), with no separate exfiltration channel to detect.
 
-<p align="center"><img src="images/flag-19.png" alt="Flag 19 screenshot" width="800"></p>
+<p align="center"><img src="images/s5-q3.png" alt="S5 Q3 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on `cmd.exe` command lines starting with C2 framework verbs (`download`, `upload`, `shell`, `sleep`).
 </details>
 
 <details>
-<summary><strong>Flag 20: Exfiltrated files</strong> → <code>passwords.txt, vpn-access-notes.txt</code></summary>
+<summary><strong>S5 Q4: Exfiltrated files</strong> → <code>passwords.txt, vpn-access-notes.txt</code></summary>
 
 **Objective:** Name both files transferred to the attacker.
 
@@ -570,13 +566,13 @@ SysmonProcess_CL
 
 **Why it matters:** The VPN notes give the attacker a way into the corporate network that doesn't depend on NL-WS01.
 
-<p align="center"><img src="images/flag-20.png" alt="Flag 20 screenshot" width="800"></p>
+<p align="center"><img src="images/s5-q4.png" alt="S5 Q4 screenshot" width="800"></p>
 
 **Detection Recommendation:** Review VPN authentication logs for any use of the exposed credentials after 14:03 UTC on 15 Oct.
 </details>
 
 <details>
-<summary><strong>Flag 21: Staging assessment</strong> → <code>no</code></summary>
+<summary><strong>S5 Q5: Staging assessment</strong> → <code>no</code></summary>
 
 **Objective:** Determine whether data was staged or archived before exfiltration.
 
@@ -593,7 +589,7 @@ SysmonProcess_CL
 | project OriginalTime, User, Image, CommandLine
 ```
 
-<p align="center"><img src="images/flag-21.png" alt="Flag 21 screenshot" width="800"></p>
+<p align="center"><img src="images/s5-q5.png" alt="S5 Q5 screenshot" width="800"></p>
 
 **Detection Recommendation:** Keep archive-utility alerting in place. Its absence here doesn't make it less valuable for other intrusions.
 </details>
@@ -601,7 +597,7 @@ SysmonProcess_CL
 ## Section 6: The Second Skin
 
 <details>
-<summary><strong>Flag 22: Persistent beacon</strong> → <code>imageloader.exe</code></summary>
+<summary><strong>S6 Q1: Persistent beacon</strong> → <code>imageloader.exe</code></summary>
 
 **Objective:** Identify the persistent copy of the implant.
 
@@ -618,13 +614,13 @@ SysmonFileCreate_CL
 | order by OriginalTime asc
 ```
 
-<p align="center"><img src="images/flag-22.png" alt="Flag 22 screenshot" width="800"></p>
+<p align="center"><img src="images/s6-q1.png" alt="S6 Q1 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on `.exe` files created under `Pictures`, `Documents`, `Music` or `Videos`.
 </details>
 
 <details>
-<summary><strong>Flag 23: Hiding directory</strong> → <code>picture-loader</code></summary>
+<summary><strong>S6 Q2: Hiding directory</strong> → <code>picture-loader</code></summary>
 
 **Objective:** Identify the folder created for the implant.
 
@@ -632,13 +628,13 @@ SysmonFileCreate_CL
 
 **Why it matters:** A folder the user can write to without admin rights, named to look harmless.
 
-<p align="center"><img src="images/flag-23.png" alt="Flag 23 screenshot" width="800"></p>
+<p align="center"><img src="images/s6-q2.png" alt="S6 Q2 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on directory creation followed by an executable write in user media folders by a non-explorer process.
 </details>
 
 <details>
-<summary><strong>Flag 24: Cleanup evidence</strong> → <code>sishelper.exe</code></summary>
+<summary><strong>S6 Q3: Cleanup evidence</strong> → <code>sishelper.exe</code></summary>
 
 **Objective:** Identify the intermediate file deleted.
 
@@ -646,13 +642,13 @@ SysmonFileCreate_CL
 
 **Why it matters:** Indicator removal (T1070.004). Because the upload and delete paths differ, a copy may still be in `\Users\sarah.cole\AppData\`, which needs verifying during eradication.
 
-<p align="center"><img src="images/flag-24.png" alt="Flag 24 screenshot" width="800"></p>
+<p align="center"><img src="images/s6-q3.png" alt="S6 Q3 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on `del /f /q` of executables by `cmd.exe` children of untrusted binaries.
 </details>
 
 <details>
-<summary><strong>Flag 25: Registry value</strong> → <code>image</code></summary>
+<summary><strong>S6 Q4: Registry value</strong> → <code>image</code></summary>
 
 **Objective:** Identify the Run key value name.
 
@@ -668,13 +664,13 @@ SysmonRegistryEvent_CL
 | project OriginalTime, Image, EventType, TargetObject, Details
 ```
 
-<p align="center"><img src="images/flag-25.png" alt="Flag 25 screenshot" width="800"></p>
+<p align="center"><img src="images/s6-q4.png" alt="S6 Q4 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on Run/RunOnce writes whose data points to user-profile paths.
 </details>
 
 <details>
-<summary><strong>Flag 26: Naming pattern</strong> → <code>deliberate</code></summary>
+<summary><strong>S6 Q5: Naming pattern</strong> → <code>deliberate</code></summary>
 
 **Objective:** Assess the naming of the persistence elements.
 
@@ -682,7 +678,7 @@ SysmonRegistryEvent_CL
 
 **Why it matters:** This was deliberate camouflage, in contrast to the operator's clumsy command-line work, and suggests a pre-planned persistence approach.
 
-<p align="center"><img src="images/flag-26.png" alt="Flag 26 screenshot" width="800"></p>
+<p align="center"><img src="images/s6-q5.png" alt="S6 Q5 screenshot" width="800"></p>
 
 **Detection Recommendation:** Don't rely on names looking harmless. Detect on location, signer and parent instead.
 </details>
@@ -690,7 +686,7 @@ SysmonRegistryEvent_CL
 ## Section 7: What the Network Missed
 
 <details>
-<summary><strong>Flag 27: Lateral movement</strong> → <code>no</code></summary>
+<summary><strong>S7 Q1: Lateral movement</strong> → <code>no</code></summary>
 
 **Objective:** Determine whether internal hosts were targeted.
 
@@ -707,13 +703,13 @@ SysmonNetwork_CL
 | summarize Connections = count(), Ports = make_set(DestinationPort) by Image, DestinationIp, Internal
 ```
 
-<p align="center"><img src="images/flag-27.png" alt="Flag 27 screenshot" width="800"></p>
+<p align="center"><img src="images/s7-q1.png" alt="S7 Q1 screenshot" width="800"></p>
 
 **Detection Recommendation:** Extend the hunt to VPN, identity provider and other endpoints for the exposed accounts.
 </details>
 
 <details>
-<summary><strong>Flag 28: Root cause</strong> → <code>RDP</code></summary>
+<summary><strong>S7 Q2: Root cause</strong> → <code>RDP</code></summary>
 
 **Objective:** Identify the exposed remote access service.
 
@@ -723,13 +719,13 @@ SysmonNetwork_CL
 
 **Why it matters:** Internet-exposed RDP plus stolen credentials gave the attacker the whole intrusion.
 
-<p align="center"><img src="images/flag-28.png" alt="Flag 28 screenshot" width="800"></p>
+<p align="center"><img src="images/s7-q2.png" alt="S7 Q2 screenshot" width="800"></p>
 
 **Detection Recommendation:** Remove public RDP, and require a VPN or RD Gateway with MFA, or just-in-time access (Azure Bastion / Defender JIT).
 </details>
 
 <details>
-<summary><strong>Flag 29: Threat status</strong> → <code>no</code></summary>
+<summary><strong>S7 Q3: Threat status</strong> → <code>no</code></summary>
 
 **Objective:** Determine whether the threat was contained.
 
@@ -737,13 +733,13 @@ SysmonNetwork_CL
 
 **Why it matters:** The attacker keeps access to the host and holds credentials that work elsewhere.
 
-<p align="center"><img src="images/flag-29.png" alt="Flag 29 screenshot" width="800"></p>
+<p align="center"><img src="images/s7-q3.png" alt="S7 Q3 screenshot" width="800"></p>
 
 **Detection Recommendation:** Isolate the device automatically when C2 IOCs are confirmed on an endpoint.
 </details>
 
 <details>
-<summary><strong>Flag 30: Priority remediation</strong> → Delete the Run value</summary>
+<summary><strong>S7 Q4: Priority remediation</strong> → Delete the Run value</summary>
 
 **Objective:** Name the single change that breaks the persistence.
 
@@ -755,7 +751,7 @@ Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" 
 
 **Why it matters:** The Run value is the only autostart trigger seen. Removing it disables persistence, but **not** the running beacon or the stolen credentials, so it must be done together with full containment.
 
-<p align="center"><img src="images/flag-30.png" alt="Flag 30 screenshot" width="800"></p>
+<p align="center"><img src="images/s7-q4.png" alt="S7 Q4 screenshot" width="800"></p>
 
 **Detection Recommendation:** Regularly audit autoruns (Sysinternals Autoruns or Defender) for user-profile executables.
 </details>
