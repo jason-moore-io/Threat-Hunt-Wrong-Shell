@@ -178,7 +178,8 @@ SysmonNetwork_CL
 | order by Connections desc
 ```
 
-<p align="center"><img src="images/s1-q1.png" alt="S1 Q1 screenshot" width="800"></p>
+<img width="770" height="483" alt="TH28_S1_Q1" src="https://github.com/user-attachments/assets/d9c69e3d-ce6e-4f06-a3d1-62e3af517cdd" />
+
 
 **Detection Recommendation:** Alert on any process named like a system binary (`svchost*`, `lsass*`, `csrss*`, `explorer*`) running outside `C:\Windows\`.
 </details>
@@ -203,7 +204,8 @@ SysmonDNS_CL
             Results = make_set(QueryResults) by Image, QueryName
 ```
 
-<p align="center"><img src="images/s1-q2.png" alt="S1 Q2 screenshot" width="800"></p>
+<img width="1008" height="407" alt="TH28_S1_Q2" src="https://github.com/user-attachments/assets/331387bc-2fd0-47cf-9999-4b38fb789122" />
+
 
 **Detection Recommendation:** Alert on DNS queries from executables in user-writable paths to newly registered or low-reputation domains.
 </details>
@@ -226,7 +228,8 @@ SysmonNetwork_CL
 | summarize Connections = count(), First = min(OriginalTime), Last = max(OriginalTime) by DestinationIp
 ```
 
-<p align="center"><img src="images/s1-q3.png" alt="S1 Q3 screenshot" width="800"></p>
+<img width="700" height="748" alt="TH28_S1_Q3" src="https://github.com/user-attachments/assets/d6e66808-3971-4003-a099-79042fc7652e" />
+
 
 **Detection Recommendation:** Add both IPs and the domain to threat intel and to firewall and proxy blocklists, and watch for other hosts contacting them.
 </details>
@@ -249,7 +252,7 @@ SysmonNetwork_CL
 | summarize count() by DestinationPort, Protocol
 ```
 
-<p align="center"><img src="images/s1-q4.png" alt="S1 Q4 screenshot" width="800"></p>
+<img width="492" height="381" alt="TH28_S1_Q4" src="https://github.com/user-attachments/assets/e720f0cd-66bb-449c-9faa-f3ca01c73d01" />
 
 **Detection Recommendation:** Force outbound HTTP through an authenticated proxy, and alert on direct port-80 connections from non-browser processes.
 </details>
@@ -274,7 +277,7 @@ SysmonProcess_CL
 | project OriginalTime, User, ParentImage, ParentProcessId, Image, ProcessId, CommandLine, IntegrityLevel
 ```
 
-<p align="center"><img src="images/s2-q1.png" alt="S2 Q1 screenshot" width="800"></p>
+<img width="1170" height="556" alt="TH28_S2_Q1" src="https://github.com/user-attachments/assets/11feca86-6bfe-4ac5-97af-eb427d335a01" />
 
 **Detection Recommendation:** Alert on browsers launching unsigned executables from `Downloads`, and enforce SmartScreen and Mark-of-the-Web blocking.
 </details>
@@ -288,7 +291,7 @@ SysmonProcess_CL
 
 **Why it matters:** This is the start of compromise on NL-WS01: 3m23s after the attacker's RDP logon and 1.7 s before the first C2 DNS lookup.
 
-<p align="center"><img src="images/s2-q2.png" alt="S2 Q2 screenshot" width="800"></p>
+<img width="663" height="612" alt="TH28_S2_Q2" src="https://github.com/user-attachments/assets/bab7c351-8793-4fba-9d33-2b3553c39867" />
 
 **Detection Recommendation:** Correlate new Type 10 logons from public IPs with process creation in user-writable paths within a short window.
 </details>
@@ -312,7 +315,7 @@ SysmonProcess_CL
 | project pack_all()
 ```
 
-<p align="center"><img src="images/s2-q3.png" alt="S2 Q3 screenshot" width="800"></p>
+<img width="613" height="735" alt="TH28_S2_Q3" src="https://github.com/user-attachments/assets/c8c0663b-6158-4a14-857f-22be93afcdf2" />
 
 **Detection Recommendation:** Alert on `svchost.exe`-named processes with `TerminalSessionId != 0`.
 </details>
@@ -335,7 +338,8 @@ SysmonProcess_CL
 
 **Why it matters:** Several deviations together form a clear masquerading pattern (T1036.005).
 
-<p align="center"><img src="images/s2-q4.png" alt="S2 Q4 screenshot" width="800"></p>
+<img width="1194" height="735" alt="TH28_S2_Q4" src="https://github.com/user-attachments/assets/c299702b-45a7-49ec-a1ca-525ad80d56be" />
+
 
 **Detection Recommendation:** Build a parent/path/session baseline rule for critical Windows process names.
 </details>
@@ -361,7 +365,7 @@ SecurityEvent_CL
 | order by OriginalTime asc
 ```
 
-<p align="center"><img src="images/s3-q1.png" alt="S3 Q1 screenshot" width="800"></p>
+<img width="1019" height="759" alt="TH28_S3_Q1" src="https://github.com/user-attachments/assets/e4695c69-1b98-4e31-b937-a3494bf81d20" />
 
 **Detection Recommendation:** Alert on any 4624 Type 10 from a public IP address.
 
@@ -377,7 +381,6 @@ SecurityEvent_CL
 
 **Why it matters:** `kali` is the default Kali Linux hostname, an offensive-security distribution. Leaving the default in place suggests a throwaway or quickly built attack box.
 
-<p align="center"><img src="images/s3-q2.png" alt="S3 Q2 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on 4624 or 4625 events with `WorkstationName` in a list of known attack-distro defaults (`kali`, `parrot`, `WIN-*` from public IPs).
 </details>
@@ -391,7 +394,6 @@ SecurityEvent_CL
 
 **Why it matters:** Same client, changing ISP addresses and a normal unlock pattern: this is sarah.cole herself. It also shows RDP exposure was a standing remote-work practice.
 
-<p align="center"><img src="images/s3-q3.png" alt="S3 Q3 screenshot" width="800"></p>
 
 **Detection Recommendation:** Baseline each user's known client workstation names, and alert on new ones combined with a new public IP.
 </details>
@@ -412,7 +414,6 @@ SecurityEvent_CL
 | summarize count() by Account, IpAddress
 ```
 
-<p align="center"><img src="images/s3-q4.png" alt="S3 Q4 screenshot" width="800"></p>
 
 **Detection Recommendation:** Enforce MFA on remote access, and check user credentials against known breach data.
 </details>
@@ -437,7 +438,7 @@ SysmonProcess_CL
 | order by OriginalTime asc
 ```
 
-<p align="center"><img src="images/s4-q1.png" alt="S4 Q1 screenshot" width="800"></p>
+<img width="1000" height="715" alt="TH28_S4_01" src="https://github.com/user-attachments/assets/6d81710c-fedc-4fdd-b917-53286ca82beb" />
 
 **Detection Recommendation:** Alert on `cmd.exe /c` command lines containing Linux-only commands (`ls`, `cat`, `pwd`, `uname`, `ifconfig`).
 </details>
@@ -451,7 +452,6 @@ SysmonProcess_CL
 
 **Why it matters:** After the group-add attempts failed, the operator tried to grant user rights through a custom security template.
 
-<p align="center"><img src="images/s4-q2.png" alt="S4 Q2 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on `secedit.exe /configure` run by non-admin users or from templates in `Temp`.
 </details>
@@ -479,7 +479,7 @@ SecurityEvent_CL
 | project OriginalTime, EventID, Account, Activity
 ```
 
-<p align="center"><img src="images/s4-q3.png" alt="S4 Q3 screenshot" width="800"></p>
+<img width="483" height="322" alt="TH28_S4_Q3" src="https://github.com/user-attachments/assets/0dbbc6ca-31ae-440e-a35b-fcd94ec8fc89" />
 
 **Detection Recommendation:** Alert on `net localgroup ... /add` and `secedit /configure` regardless of whether they succeed, because the attempt itself is the signal.
 </details>
@@ -492,8 +492,6 @@ SecurityEvent_CL
 **Finding:** It was a hands-on-keyboard human operator, based on wrong-OS commands, a typo then a fix, repeated `dir` path attempts, a change of tactic after failure, irregular timing (gaps of seconds and hours), and confusion over the `sishelper.exe` path.
 
 **Why it matters:** Interactive Havoc C2 operation by someone at home on Linux but weaker on Windows. Persistence was nonetheless carefully themed (S6 Q5).
-
-<p align="center"><img src="images/s4-q4.png" alt="S4 Q4 screenshot" width="800"></p>
 
 **Detection Recommendation:** Treat interactive `cmd.exe` children of unknown binaries as active intrusions that need immediate response.
 </details>
@@ -509,7 +507,6 @@ SecurityEvent_CL
 
 **Why it matters:** Plaintext credential storage (T1552.001). All credentials in the file must be treated as compromised.
 
-<p align="center"><img src="images/s5-q1.png" alt="S5 Q1 screenshot" width="800"></p>
 
 **Detection Recommendation:** Run a DLP or file-name watch for `password*`, `creds*` and `*vpn*` files, and require a password manager.
 </details>
@@ -531,7 +528,7 @@ SysmonProcess_CL
 | order by OriginalTime asc
 ```
 
-<p align="center"><img src="images/s5-q2.png" alt="S5 Q2 screenshot" width="800"></p>
+<img width="1082" height="480" alt="TH28_S5_Q2" src="https://github.com/user-attachments/assets/fbaf93da-5375-4769-b1a0-d265389ad3c1" />
 
 **Detection Recommendation:** Compare file access by the expected parent (`explorer.exe`) with access through `cmd.exe` spawned by unknown binaries.
 </details>
@@ -545,7 +542,6 @@ SysmonProcess_CL
 
 **Why it matters:** Exfiltration over the existing HTTP C2 channel (T1041), with no separate exfiltration channel to detect.
 
-<p align="center"><img src="images/s5-q3.png" alt="S5 Q3 screenshot" width="800"></p>
 
 **Detection Recommendation:** Alert on `cmd.exe` command lines starting with C2 framework verbs (`download`, `upload`, `shell`, `sleep`).
 </details>
@@ -566,7 +562,6 @@ SysmonProcess_CL
 
 **Why it matters:** The VPN notes give the attacker a way into the corporate network that doesn't depend on NL-WS01.
 
-<p align="center"><img src="images/s5-q4.png" alt="S5 Q4 screenshot" width="800"></p>
 
 **Detection Recommendation:** Review VPN authentication logs for any use of the exposed credentials after 14:03 UTC on 15 Oct.
 </details>
@@ -589,7 +584,6 @@ SysmonProcess_CL
 | project OriginalTime, User, Image, CommandLine
 ```
 
-<p align="center"><img src="images/s5-q5.png" alt="S5 Q5 screenshot" width="800"></p>
 
 **Detection Recommendation:** Keep archive-utility alerting in place. Its absence here doesn't make it less valuable for other intrusions.
 </details>
@@ -614,7 +608,7 @@ SysmonFileCreate_CL
 | order by OriginalTime asc
 ```
 
-<p align="center"><img src="images/s6-q1.png" alt="S6 Q1 screenshot" width="800"></p>
+<img width="1204" height="464" alt="TH28_S6_Q1" src="https://github.com/user-attachments/assets/83ef1da7-a3e7-42fd-a449-724bab861875" />
 
 **Detection Recommendation:** Alert on `.exe` files created under `Pictures`, `Documents`, `Music` or `Videos`.
 </details>
@@ -628,7 +622,7 @@ SysmonFileCreate_CL
 
 **Why it matters:** A folder the user can write to without admin rights, named to look harmless.
 
-<p align="center"><img src="images/s6-q2.png" alt="S6 Q2 screenshot" width="800"></p>
+<img width="1187" height="467" alt="TH28_S6_Q2" src="https://github.com/user-attachments/assets/a5964c77-a55c-4314-b1af-f456b179f880" />
 
 **Detection Recommendation:** Alert on directory creation followed by an executable write in user media folders by a non-explorer process.
 </details>
@@ -642,7 +636,7 @@ SysmonFileCreate_CL
 
 **Why it matters:** Indicator removal (T1070.004). Because the upload and delete paths differ, a copy may still be in `\Users\sarah.cole\AppData\`, which needs verifying during eradication.
 
-<p align="center"><img src="images/s6-q3.png" alt="S6 Q3 screenshot" width="800"></p>
+<img width="1178" height="500" alt="TH28_S6_Q3" src="https://github.com/user-attachments/assets/fc013346-b0e8-4c3e-b898-995239832003" />
 
 **Detection Recommendation:** Alert on `del /f /q` of executables by `cmd.exe` children of untrusted binaries.
 </details>
@@ -664,7 +658,7 @@ SysmonRegistryEvent_CL
 | project OriginalTime, Image, EventType, TargetObject, Details
 ```
 
-<p align="center"><img src="images/s6-q4.png" alt="S6 Q4 screenshot" width="800"></p>
+<img width="1161" height="517" alt="TH28_S6_Q4" src="https://github.com/user-attachments/assets/9da2b5d6-a400-4513-bcc9-b9514e723f9e" />
 
 **Detection Recommendation:** Alert on Run/RunOnce writes whose data points to user-profile paths.
 </details>
@@ -678,7 +672,6 @@ SysmonRegistryEvent_CL
 
 **Why it matters:** This was deliberate camouflage, in contrast to the operator's clumsy command-line work, and suggests a pre-planned persistence approach.
 
-<p align="center"><img src="images/s6-q5.png" alt="S6 Q5 screenshot" width="800"></p>
 
 **Detection Recommendation:** Don't rely on names looking harmless. Detect on location, signer and parent instead.
 </details>
@@ -703,7 +696,7 @@ SysmonNetwork_CL
 | summarize Connections = count(), Ports = make_set(DestinationPort) by Image, DestinationIp, Internal
 ```
 
-<p align="center"><img src="images/s7-q1.png" alt="S7 Q1 screenshot" width="800"></p>
+<img width="549" height="373" alt="TH28_S7_Q1" src="https://github.com/user-attachments/assets/80c27cd6-25f6-46e2-9e48-02e8a6f25f92" />
 
 **Detection Recommendation:** Extend the hunt to VPN, identity provider and other endpoints for the exposed accounts.
 </details>
@@ -719,7 +712,6 @@ SysmonNetwork_CL
 
 **Why it matters:** Internet-exposed RDP plus stolen credentials gave the attacker the whole intrusion.
 
-<p align="center"><img src="images/s7-q2.png" alt="S7 Q2 screenshot" width="800"></p>
 
 **Detection Recommendation:** Remove public RDP, and require a VPN or RD Gateway with MFA, or just-in-time access (Azure Bastion / Defender JIT).
 </details>
@@ -733,7 +725,6 @@ SysmonNetwork_CL
 
 **Why it matters:** The attacker keeps access to the host and holds credentials that work elsewhere.
 
-<p align="center"><img src="images/s7-q3.png" alt="S7 Q3 screenshot" width="800"></p>
 
 **Detection Recommendation:** Isolate the device automatically when C2 IOCs are confirmed on an endpoint.
 </details>
@@ -751,7 +742,6 @@ Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" 
 
 **Why it matters:** The Run value is the only autostart trigger seen. Removing it disables persistence, but **not** the running beacon or the stolen credentials, so it must be done together with full containment.
 
-<p align="center"><img src="images/s7-q4.png" alt="S7 Q4 screenshot" width="800"></p>
 
 **Detection Recommendation:** Regularly audit autoruns (Sysinternals Autoruns or Defender) for user-profile executables.
 </details>
