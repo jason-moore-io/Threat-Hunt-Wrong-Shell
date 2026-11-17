@@ -592,8 +592,10 @@ SysmonProcess_CL
 **KQL:**
 ```kql
 SysmonFileCreate_CL
-| where Computer contains "NL-WS01"
-| where TargetFilename contains ".exe"
+| where Campaign == 'NL-WS01'
+| where OriginalTime between (datetime(2026-10-15T15:00:00Z) .. datetime(2026-10-15T17:00:00Z))
+| where TargetFilename endswith ".exe"
+    or TargetFilename has_any ("sishelper", "imageloader", "picture-loader")
 | project OriginalTime, Image, TargetFilename
 | order by OriginalTime asc
 ```
