@@ -682,10 +682,10 @@ SysmonRegistryEvent_CL
 **KQL:**
 ```kql
 SysmonNetwork_CL
-| where Campaign == 'NL-WS01'
-| where Image has_any ("svchost1.exe", "imageloader.exe", "sishelper.exe", "cmd.exe")
-| extend Internal = ipv4_is_private(DestinationIp)
-| summarize Connections = count(), Ports = make_set(DestinationPort) by Image, DestinationIp, Internal
+| where Computer contains "NL-WS01"
+| where ProcessId == "6468"
+| summarize ConnectionCount=count(), by DestinationIp
+
 ```
 
 <img width="549" height="373" alt="TH28_S7_Q1" src="https://github.com/user-attachments/assets/80c27cd6-25f6-46e2-9e48-02e8a6f25f92" />
