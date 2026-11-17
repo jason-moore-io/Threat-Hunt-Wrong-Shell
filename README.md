@@ -277,8 +277,9 @@ SysmonNetwork_CL
 **KQL:**
 ```kql
 SysmonProcess_CL
-| where Campaign == 'NL-WS01' and Image has "svchost1.exe"
-| project OriginalTime, User, ParentImage, ParentProcessId, Image, ProcessId, CommandLine, IntegrityLevel
+| where Computer contains "NL-WS01"
+| where Image contains "svchost1"
+| project OriginalTime, Image, ParentImage, CommandLine, User, ProcessId, TerminalSessionId
 ```
 
 <img width="1170" height="556" alt="TH28_S2_Q1" src="https://github.com/user-attachments/assets/11feca86-6bfe-4ac5-97af-eb427d335a01" />
