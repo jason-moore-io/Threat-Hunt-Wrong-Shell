@@ -520,7 +520,9 @@ SecurityEvent_CL
 **KQL:**
 ```kql
 SysmonProcess_CL
-| where Campaign == 'NL-WS01' and CommandLine has "passwords"
+| where Campaign == 'NL-WS01'
+| where OriginalTime between (datetime(2026-10-15T10:00:00Z) .. datetime(2026-10-15T17:00:00Z))
+| where CommandLine has "passwords"
 | project OriginalTime, User, ParentImage, Image, ProcessId, CommandLine
 | order by OriginalTime asc
 ```
