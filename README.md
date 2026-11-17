@@ -363,10 +363,10 @@ SysmonProcess_CL
 **KQL:**
 ```kql
 SecurityEvent_CL
-| where Campaign == 'NL-WS01' and EventID == 4624
-| where OriginalTime between (datetime(2026-10-15T10:00:00Z) .. datetime(2026-10-15T17:00:00Z))
-| project OriginalTime, Account, LogonType, IpAddress,
-          WorkstationName = column_ifexists("WorkstationName",""), TargetLogonId = column_ifexists("TargetLogonId","")
+| where Computer contains "NL-WS01"
+| where EventID == 4624
+| where Account contains "sarah.cole"
+| project OriginalTime, Account, IpAddress, AuthenticationPackageName, WorkstationName
 | order by OriginalTime asc
 ```
 
