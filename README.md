@@ -412,14 +412,6 @@ SecurityEvent_CL
 
 **Why it matters:** The credentials were obtained beforehand, possibly through the Netflix-themed phishing lure, reuse, or an infostealer. Brute force (T1110) is ruled out, and Valid Accounts (T1078) applies.
 
-**KQL:**
-```kql
-SecurityEvent_CL
-| where Campaign == 'NL-WS01' and EventID == 4625
-| summarize count() by Account, IpAddress
-```
-
-
 **Detection Recommendation:** Enforce MFA on remote access, and check user credentials against known breach data.
 </details>
 
@@ -437,9 +429,10 @@ SecurityEvent_CL
 **KQL:**
 ```kql
 SysmonProcess_CL
-| where Campaign == 'NL-WS01'
-| where ParentImage has "svchost1.exe"
-| project OriginalTime, ParentImage, Image, ProcessId, CommandLine
+| where Computer contains "NL-WS01"
+| where ParentProcessId == "6468"
+| where CommandLine contains "ls" or CommandLine contains "dir"
+| project OriginalTime, CommandLine, Image
 | order by OriginalTime asc
 ```
 
@@ -479,9 +472,8 @@ SysmonProcess_CL
 **KQL:**
 ```kql
 SecurityEvent_CL
-| where Campaign == 'NL-WS01'
-| where EventID in (4732, 4728, 4756, 4704)
-| project OriginalTime, EventID, Account, Activity
+| where Computer contains "NL-WS01"
+| where EventID in (4732, 4704)
 ```
 
 <img width="483" height="322" alt="TH28_S4_Q3" src="https://github.com/user-attachments/assets/0dbbc6ca-31ae-440e-a35b-fcd94ec8fc89" />
