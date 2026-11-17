@@ -574,15 +574,6 @@ SysmonProcess_CL
 
 **Why it matters:** Opportunistic, low-sophistication collection. T1074 was assessed and **not observed**.
 
-**KQL:**
-```kql
-SysmonProcess_CL
-| where Campaign == 'NL-WS01'
-| where Image has_any ("7z", "rar", "tar.exe", "makecab", "xcopy", "robocopy")
-    or CommandLine has_any ("Compress-Archive", ".zip", ".7z", ".rar", " copy ", " move ")
-| project OriginalTime, User, Image, CommandLine
-```
-
 
 **Detection Recommendation:** Keep archive-utility alerting in place. Its absence here doesn't make it less valuable for other intrusions.
 </details>
@@ -601,8 +592,8 @@ SysmonProcess_CL
 **KQL:**
 ```kql
 SysmonFileCreate_CL
-| where Campaign == 'NL-WS01'
-| where TargetFilename has_any ("sishelper", "imageloader", "picture-loader") or TargetFilename endswith ".exe"
+| where Computer contains "NL-WS01"
+| where TargetFilename contains ".exe"
 | project OriginalTime, Image, TargetFilename
 | order by OriginalTime asc
 ```
@@ -652,9 +643,9 @@ SysmonFileCreate_CL
 **KQL:**
 ```kql
 SysmonRegistryEvent_CL
-| where Campaign == 'NL-WS01'
-| where TargetObject has @"CurrentVersion\Run"
-| project OriginalTime, Image, EventType, TargetObject, Details
+| where Computer contains "NL-WS01"
+| where TargetObject contains "Run"
+| project OriginalTime, EventType, Image, ProcessId, TargetObject, Details
 ```
 
 <img width="1161" height="517" alt="TH28_S6_Q4" src="https://github.com/user-attachments/assets/9da2b5d6-a400-4513-bcc9-b9514e723f9e" />
