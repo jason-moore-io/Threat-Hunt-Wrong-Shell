@@ -170,12 +170,11 @@ No lateral movement was seen. **The threat was not contained** at the end of the
 **KQL:**
 ```kql
 SysmonNetwork_CL
-| where Campaign == 'NL-WS01'
-| where OriginalTime between (datetime(2026-10-15T10:00:00Z) .. datetime(2026-10-15T17:00:00Z))
-| where not(ipv4_is_private(DestinationIp))
-| extend ProcessName = tostring(split(Image, "\\")[-1])
-| summarize Connections = count(), DestIPs = make_set(DestinationIp), Ports = make_set(DestinationPort) by ProcessName, Image
-| order by Connections desc
+| where Computer contains "NL-WS01"
+| where EventID == "3"
+| where User contains "sarah.cole"
+| summarize ConnectionCount=count(), DistinctIPs=dcount(DestinationIp) by Image
+| order by ConnectionCount desc
 ```
 
 <img width="770" height="483" alt="TH28_S1_Q1" src="https://github.com/user-attachments/assets/d9c69e3d-ce6e-4f06-a3d1-62e3af517cdd" />
@@ -198,10 +197,11 @@ SysmonNetwork_CL
 **KQL:**
 ```kql
 SysmonDNS_CL
-| where Campaign == 'NL-WS01'
-| where Image has "svchost1.exe" or QueryResults has_any ("185.196.9.213", "5.182.33.151")
-| summarize Queries = count(), FirstSeen = min(OriginalTime), LastSeen = max(OriginalTime),
-            Results = make_set(QueryResults) by Image, QueryName
+| where Computer contains "NL-WS01"
+| where EventID == "22"
+| where ProcessId == "6468"
+| project OriginalTime, QueryName, QueryResults, Image
+| order by OriginalTime asc
 ```
 
 <img width="1008" height="407" alt="TH28_S1_Q2" src="https://github.com/user-attachments/assets/331387bc-2fd0-47cf-9999-4b38fb789122" />
@@ -224,8 +224,11 @@ SysmonDNS_CL
 **KQL:**
 ```kql
 SysmonNetwork_CL
-| where Campaign == 'NL-WS01' and Image has "svchost1.exe"
-| summarize Connections = count(), First = min(OriginalTime), Last = max(OriginalTime) by DestinationIp
+| where Computer contains "NL-WS01"
+| where ProcessId == "6468"
+| where EventID == "3"
+| project OriginalTime, DestinationIp, DestinationPort
+| order by OriginalTime asc
 ```
 
 <img width="700" height="748" alt="TH28_S1_Q3" src="https://github.com/user-attachments/assets/d6e66808-3971-4003-a099-79042fc7652e" />
@@ -248,8 +251,9 @@ SysmonNetwork_CL
 **KQL:**
 ```kql
 SysmonNetwork_CL
-| where Campaign == 'NL-WS01' and Image has "svchost1.exe"
-| summarize count() by DestinationPort, Protocol
+| where Computer contains "NL-WS01"
+| where ProcessId == "6468"
+| distinct DestinationPort
 ```
 
 <img width="492" height="381" alt="TH28_S1_Q4" src="https://github.com/user-attachments/assets/e720f0cd-66bb-449c-9faa-f3ca01c73d01" />
